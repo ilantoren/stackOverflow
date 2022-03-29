@@ -2,7 +2,7 @@
 ## Mongodb what is the best way to use collection as round robin 
 [see at StackOverflow](https://stackoverflow.com/questions/51214328/mongodb-what-is-the-best-way-to-use-collection-as-round-robin)
 
-![alt explanation of problem] (assets/stackoverflow.jpg)
+![alt explanation of problem](assets/stackoverflow.jpg)
 
 **Description of solution**
 
