@@ -44,3 +44,27 @@ $size: '$values'
 }
 }}]
 `
+# Using a separate counter to advance round-robin through another collection
+###  Example1  covered the cases of a small set of elements, but as the number of elements grows the execution time increases as well.   Using two collections a counter and another for the elements should decrease the time of execution by using two queries to accomplish the task
+
+
+**The update is simpler:**
+
+[{$project: {
+counter: {
+$mod: [
+{
+$add: [
+'$counter',
+1
+]
+},
+50000
+]
+}
+}}]``
+``
+
+It returns a number that can be an indexed field in another collection.
+This method takes two queries to get the result but ultimately faster when dealing with
+a large number items.

@@ -21,7 +21,7 @@ import java.util.*
  *   for the following pipeline [{$project:{values: 1, selected: {$arrayElemAt:[ "$values", "$counter"]}, counter:  {$mod:[ {$add:["$counter",1]}, {$size: "$values" }]}}} ]
  *
  */
-class Example {
+class Example1 {
     private val readConcern = ReadConcern(  ReadConcernLevel.LINEARIZABLE)
     private val options = MongoClientSettings.builder().readConcern(readConcern).build()
     private val mongoClient: MongoClient = MongoClients.create(options)
@@ -69,8 +69,12 @@ class Example {
     private  fun runTest() = runBlocking {
         log.info( "Starting")
         val doc = Document.parse( initialData )
+        /** remove the omments to see the affects of a large number of elements
         val addedItems = IntRange(0,300).map{ "\"$it\""}.toMutableList();
         doc["values"] = addedItems
+        **/
+
+
         // empty the collection
         collection.deleteMany(Document()).asFlow().collect{
             log.info( "deleted ${it.deletedCount}")
@@ -79,7 +83,8 @@ class Example {
         collection.insertOne( doc).asFlow().collect{
             log.info( "Inserted ${it.insertedId}")
         }
-        IntRange(0,500000).forEach { r ->
+
+        IntRange(0,5000).forEach { r ->
             launch {
                 singleUpdate(r, Date())
             }
@@ -100,7 +105,7 @@ class Example {
         val  log = LogManager.getLogger("stackoverflow")
         @JvmStatic
         fun main ( args : Array<String>) {
-            Example().runTest()
+            Example1().runTest()
         }
     }
 }
