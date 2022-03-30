@@ -1,16 +1,19 @@
 package stackOverflow
 
+import com.mongodb.MongoClientSettings
 import com.mongodb.ReadConcern
 import com.mongodb.ReadConcernLevel
-import com.mongodb.MongoClientSettings
+import com.mongodb.client.model.FindOneAndUpdateOptions
 import com.mongodb.reactivestreams.client.MongoClient
 import com.mongodb.reactivestreams.client.MongoClients
 import com.mongodb.reactivestreams.client.MongoCollection
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import org.bson.Document
+import java.util.*
 
 
 /**
@@ -43,15 +46,15 @@ class Example {
              "\$project",
              Document("values", 1L)
                  .append(
-                     "selected",
+                 "selected",
                      Document("\$arrayElemAt", listOf("\$values", "\$counter"))
-                 )
+             )
                  .append(
                      "counter",
                      Document(
                          "\$mod", listOf(
                              Document("\$add", listOf("\$counter", 1L)),
-                             Document("\$size", "\$values")
+                           Document( "\$size", "\$values")
                          )
                      )
                  )
@@ -66,6 +69,8 @@ class Example {
     private  fun runTest() = runBlocking {
         log.info( "Starting")
         val doc = Document.parse( initialData )
+        val addedItems = IntRange(0,300).map{ "\"$it\""}.toMutableList();
+        doc["values"] = addedItems
         // empty the collection
         collection.deleteMany(Document()).asFlow().collect{
             log.info( "deleted ${it.deletedCount}")
@@ -74,17 +79,19 @@ class Example {
         collection.insertOne( doc).asFlow().collect{
             log.info( "Inserted ${it.insertedId}")
         }
-        IntRange(0,1000).forEach { r ->
+        IntRange(0,500000).forEach { r ->
             launch {
-                singleUpdate(r)
+                singleUpdate(r, Date())
             }
+            delay(1)
         }
     }
 
-    private suspend fun singleUpdate( run: Int) {
-        collection.findOneAndUpdate(Document(), pipeline).asFlow().collect {
+    private suspend fun singleUpdate( run: Int, date: Date) {
+        val options = FindOneAndUpdateOptions().projection( Document("selected", 1))
+        collection.findOneAndUpdate(Document(), pipeline, options).asFlow().collect {
             val selected = it.getString( "selected")
-           log.info( "$run   $selected ")
+           log.info( "${date.toInstant().toEpochMilli()}  $run   $selected ")
         }
     }
 
